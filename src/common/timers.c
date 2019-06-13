@@ -69,8 +69,8 @@ extern int slurm_timer_gettime(struct timeval *tv)
 #error no monotonically increasing time source available
 #endif
     if ( rc == 0 ) {
-        tv->tv_sec = cur_time->tv_sec;
-        tv->tv_usec = cur_time->tv_nsec / 1000;
+        tv->tv_sec = cur_time.tv_sec;
+        tv->tv_usec = cur_time.tv_nsec / 1000;
     }
     return rc;
 }
