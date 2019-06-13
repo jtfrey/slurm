@@ -52,19 +52,27 @@
  */
 extern int slurm_timer_gettime(struct timeval *tv)
 {
+    struct timespec     cur_time;
+    int                 rc = 1;
+    
 #if defined(__FreeBSD__)
-    return clock_gettime(CLOCK_UPTIME, tv);
+    rc = clock_gettime(CLOCK_UPTIME, &cur_time);
 #elif defined(__NetBSD__)
-    return clock_gettime(CLOCK_MONOTONIC, tv);
+    rc = clock_gettime(CLOCK_MONOTONIC, &cur_time);
 #elif defined(CLOCK_BOOTTIME)
-    return clock_gettime(CLOCK_BOOTTIME, tv);
+    rc = clock_gettime(CLOCK_BOOTTIME, &cur_time);
 #elif defined(CLOCK_MONOTONIC_RAW)
-    return clock_gettime(CLOCK_MONOTONIC_RAW, tv);
+    rc = clock_gettime(CLOCK_MONOTONIC_RAW, &cur_time);
 #elif defined(CLOCK_MONOTONIC)
-    return clock_gettime(CLOCK_MONOTONIC, tv);
+    rc = clock_gettime(CLOCK_MONOTONIC, &cur_time);
 #else
 #error no monotonically increasing time source available
 #endif
+    if ( rc == 0 ) {
+        tv->tv_sec = cur_time->tv_sec;
+        tv->tv_usec = cur_time->tv_nsec / 1000;
+    }
+    return rc;
 }
 
 

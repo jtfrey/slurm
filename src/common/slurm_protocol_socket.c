@@ -60,6 +60,7 @@
 #include "src/common/log.h"
 #include "src/common/fd.h"
 #include "src/common/strlcpy.h"
+#include "src/common/timers.h"
 #include "src/common/xsignal.h"
 #include "src/common/xstring.h"
 #include "src/common/xmalloc.h"
