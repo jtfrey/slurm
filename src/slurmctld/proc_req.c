@@ -6530,7 +6530,7 @@ static void  _slurm_rpc_comp_msg_list(composite_msg_t * comp_msg,
 			unlock_slurmctld(job_write_lock);
 			usleep(10);
 			lock_slurmctld(job_write_lock);
-			slurm_timer_gettime(start_tv, NULL);
+			slurm_timer_gettime(start_tv);
 			START_TIMER;
 		}
 		/* The ret_list is used by slurm_send_rc_msg to house
