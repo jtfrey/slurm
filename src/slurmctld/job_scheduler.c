@@ -416,7 +416,7 @@ extern List build_job_queue(bool clear_start, bool backfill)
 	time_t now = time(NULL);
 
 	/* init the timer */
-	(void) slurm_delta_tv(&start_tv);
+	(void) slurm_timer_gettime(&start_tv);
 	job_queue = list_create(_job_queue_rec_del);
 
 	/* Create individual job records for job arrays that need burst buffer
@@ -517,7 +517,7 @@ extern List build_job_queue(bool clear_start, bool backfill)
 			acct_policy_handle_accrue_time(job_ptr, false);
 
 		if (((tested_jobs % 100) == 0) &&
-		    (slurm_delta_tv(&start_tv) >= build_queue_timeout)) {
+		    (slurm_timer_delta_tv(&start_tv) >= build_queue_timeout)) {
 			if (difftime(now, last_log_time) > 600) {
 				/* Log at most once every 10 minutes */
 				info("%s has run for %d usec, exiting with %d "

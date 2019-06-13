@@ -38,8 +38,119 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+#include <linux/version.h>
 #include "src/common/log.h"
 #include "src/common/slurm_time.h"
+
+/*
+ * slurm_timer_gettime - fill-in a timeval struct with the current
+ *               monotonically increasing time (unaffected by clock
+ *               changes/adjustments)
+ * OUT tv - place t put current time value
+ *
+ * Returns zero on success, non-zero on failure.
+ */
+extern int slurm_timer_gettime(struct timeval *tv)
+{
+#if defined(__FreeBSD__)
+    return clock_gettime(CLOCK_UPTIME, tv);
+#elif defined(__NetBSD__)
+    return clock_gettime(CLOCK_MONOTONIC, tv);
+#elif defined(CLOCK_BOOTTIME)
+    return clock_gettime(CLOCK_BOOTTIME, tv);
+#elif defined(CLOCK_MONOTONIC_RAW)
+    return clock_gettime(CLOCK_MONOTONIC_RAW, tv);
+#elif defined(CLOCK_MONOTONIC)
+    return clock_gettime(CLOCK_MONOTONIC, tv);
+#else
+#error no monotonically increasing time source available
+#endif
+}
+
+
+/*
+ * slurm_timer_delta_tv - return the number of microseconds
+ *           elapsed since the timer value in tv using the
+ *           monotonically-increasing time source
+ * INOUT tv - if tv.tv_sec is zero, set to the current time
+ *           value on exit; otherwise, used as the starting
+ *           time value
+ */
+extern int slurm_timer_delta_tv(struct timeval *tv)
+{
+	struct timeval now = {0, 0};
+	int delta_t;
+
+	if (slurm_timer_gettime(&now))
+		return 1;		/* Some error */
+
+	if (tv->tv_sec == 0) {
+		tv->tv_sec  = now.tv_sec;
+		tv->tv_usec = now.tv_usec;
+		return 0;
+	}
+
+	delta_t  = (now.tv_sec - tv->tv_sec) * 1000000;
+	delta_t += (now.tv_usec - tv->tv_usec);
+
+	return delta_t;
+}
+
+/*
+ * slurm_timer_diff_tv_str - build a string showing the time
+ *             difference between two monotonically-increasing
+ *             times
+ * IN tv1 - start of event
+ * IN tv2 - end of event
+ * OUT tv_str - place to put delta time in format "usec=%ld"
+ * IN len_tv_str - size of tv_str in bytes
+ * IN from - where the function was called form
+ */
+extern void slurm_timer_diff_tv_str(struct timeval *tv1, struct timeval *tv2,
+			      char *tv_str, int len_tv_str, const char *from, long limit,
+                  long *delta_t)
+{
+	char p[64] = "";
+	struct tm tm;
+    time_t realtime;
+	int debug_limit = limit;
+
+	(*delta_t)  = (tv2->tv_sec - tv1->tv_sec) * 1000000;
+	(*delta_t) += tv2->tv_usec;
+	(*delta_t) -= tv1->tv_usec;
+	snprintf(tv_str, len_tv_str, "usec=%ld", *delta_t);
+	if (from) {
+		if (!limit) {
+			/* NOTE: The slurmctld scheduler's default run time
+			 * limit is 4 seconds, but that would not typically
+			 * be reached. See "max_sched_time=" logic in
+			 * src/slurmctld/job_scheduler.c */
+			limit = 3000000;
+			debug_limit = 1000000;
+		}
+		if ((*delta_t > debug_limit) || (*delta_t > limit)) {
+            /* NOTE: A monotonically-increasing time source has no
+             * direct correlation with the real time, so let's get
+             * the current real time, subtract off delta_t and display
+             * that as the time of day. */
+            realtime = time(NULL) - *delta_t;
+			if (!slurm_localtime_r(&realtime, &tm))
+				error("localtime_r(): %m");
+			if (strftime(p, sizeof(p), "%T", &tm) == 0)
+				error("strftime(): %m");
+			if (*delta_t > limit) {
+				verbose("Warning: Note very large processing "
+					"time from %s: %s began=%s",
+					from, tv_str, p);
+			} else {	/* Log anything over 1 second here */
+				debug("Note large processing time from %s: "
+				      "%s began=%s",
+				      from, tv_str, p);
+			}
+		}
+	}
+}
+
 
 /* Return the number of micro-seconds between now and argument "tv",
  * Initialize tv to NOW if zero on entry */

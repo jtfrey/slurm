@@ -83,7 +83,7 @@ static void _delay_rpc(int pmi_rank, int pmi_size)
 
 	_set_pmi_time();
 
-again:	if (gettimeofday(&tv1, NULL)) {
+again:	if (slurm_timer_gettime(&tv1)) {
 		usleep(pmi_rank * pmi_time);
 		return;
 	}
@@ -107,7 +107,7 @@ again:	if (gettimeofday(&tv1, NULL)) {
 	 * from target by more than 15*pmi_time, then start over. If PMI_TIME
 	 * is set appropriately, then srun should have no more than 30 RPCs
 	 * in the queue at one time in the worst case. */
-	if (gettimeofday(&tv2, NULL))
+	if (slurm_timer_gettime(&tv2))
 		return;
 	tot_time = (tv2.tv_sec - tv1.tv_sec) * 1000000;
 	tot_time += tv2.tv_usec;

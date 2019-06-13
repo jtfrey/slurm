@@ -94,7 +94,7 @@ static int _tot_wait (struct timeval *start_time)
 	struct timeval end_time;
 	int msec_delay;
 
-	gettimeofday(&end_time, NULL);
+	slurm_timer_gettime(&end_time);
 	msec_delay =   (end_time.tv_sec  - start_time->tv_sec ) * 1000;
 	msec_delay += ((end_time.tv_usec - start_time->tv_usec + 500) / 1000);
 	return msec_delay;
@@ -215,7 +215,7 @@ extern int slurm_send_timeout(int fd, char *buf, size_t size,
 	fd_flags = fcntl(fd, F_GETFL);
 	fd_set_nonblocking(fd);
 
-	gettimeofday(&tstart, NULL);
+	slurm_timer_gettime(&tstart);
 
 	while (sent < size) {
 		timeleft = timeout - _tot_wait(&tstart);
@@ -322,7 +322,7 @@ extern int slurm_recv_timeout(int fd, char *buffer, size_t size,
 	fd_flags = fcntl(fd, F_GETFL);
 	fd_set_nonblocking(fd);
 
-	gettimeofday(&tstart, NULL);
+	slurm_timer_gettime(&tstart);
 
 	while (recvlen < size) {
 		timeleft = timeout - _tot_wait(&tstart);

@@ -2024,7 +2024,7 @@ char **env_array_user_default(const char *username, int timeout, int mode,
 	else if (fcntl(fildes[0], F_SETFL, fval | O_NONBLOCK) < 0)
 		error("fcntl(F_SETFL) failed: %m");
 
-	gettimeofday(&begin, NULL);
+	slurm_timer_gettime(&begin);
 	ufds.fd = fildes[0];
 	ufds.events = POLLIN;
 
@@ -2035,7 +2035,7 @@ char **env_array_user_default(const char *username, int timeout, int mode,
 	buf_read = 0;
 	buffer = xmalloc(ENV_BUFSIZE);
 	while (1) {
-		gettimeofday(&now, NULL);
+		slurm_timer_gettime(&now);
 		timeleft = timeout * 1000;
 		timeleft -= (now.tv_sec -  begin.tv_sec)  * 1000;
 		timeleft -= (now.tv_usec - begin.tv_usec) / 1000;

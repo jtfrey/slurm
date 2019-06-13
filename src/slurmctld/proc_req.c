@@ -6464,7 +6464,7 @@ static void  _slurm_rpc_composite_msg(slurm_msg_t *msg)
 
 	_throttle_start(&active_rpc_cnt);
 	lock_slurmctld(job_write_lock);
-	gettimeofday(&start_tv, NULL);
+	slurm_timer_gettime(&start_tv);
 	_slurm_rpc_comp_msg_list(comp_msg, &run_scheduler,
 				 comp_resp_msg.msg_list, &start_tv,
 				 sched_timeout);
@@ -6521,7 +6521,7 @@ static void  _slurm_rpc_comp_msg_list(composite_msg_t * comp_msg,
 
 	itr = list_iterator_create(comp_msg->msg_list);
 	while ((next_msg = list_next(itr))) {
-		if (slurm_delta_tv(start_tv) >= timeout) {
+		if (slurm_timer_delta_tv(start_tv) >= timeout) {
 			END_TIMER;
 			if (slurmctld_conf.debug_flags & DEBUG_FLAG_ROUTE)
 				info("composite message processing "
@@ -6530,7 +6530,7 @@ static void  _slurm_rpc_comp_msg_list(composite_msg_t * comp_msg,
 			unlock_slurmctld(job_write_lock);
 			usleep(10);
 			lock_slurmctld(job_write_lock);
-			gettimeofday(start_tv, NULL);
+			slurm_timer_gettime(start_tv, NULL);
 			START_TIMER;
 		}
 		/* The ret_list is used by slurm_send_rc_msg to house

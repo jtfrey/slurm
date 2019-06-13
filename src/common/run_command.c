@@ -88,7 +88,7 @@ static int _tot_wait (struct timeval *start_time)
 	struct timeval end_time;
 	int msec_delay;
 
-	gettimeofday(&end_time, NULL);
+	slurm_timer_gettime(&end_time);
 	msec_delay =   (end_time.tv_sec  - start_time->tv_sec ) * 1000;
 	msec_delay += ((end_time.tv_usec - start_time->tv_usec + 500) / 1000);
 	return msec_delay;
@@ -182,7 +182,7 @@ extern char *run_command(char *script_type, char *script_path,
 		resp_size = 1024;
 		resp = xmalloc(resp_size);
 		close(pfd[1]);
-		gettimeofday(&tstart, NULL);
+		slurm_timer_gettime(&tstart);
 		if (tid)
 			track_script_reset_cpid(tid, cpid);
 		while (1) {

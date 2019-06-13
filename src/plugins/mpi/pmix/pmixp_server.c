@@ -1686,7 +1686,7 @@ void pmixp_server_run_pp(void)
 			}
 
 			count = pmixp_server_pp_count() + iters;
-			gettimeofday(&tv1, NULL);
+			slurm_timer_gettime(&tv1);
 			while (pmixp_server_pp_count() < count) {
 				int cur_count = pmixp_server_pp_count();
 				/* Send the message to the (nodeid == 1) */
@@ -1694,7 +1694,7 @@ void pmixp_server_run_pp(void)
 				/* wait for the response */
 				while (cur_count == pmixp_server_pp_count());
 			}
-			gettimeofday(&tv2, NULL);
+			slurm_timer_gettime(&tv2);
 			time = tv2.tv_sec + 1E-6 * tv2.tv_usec -
 					(tv1.tv_sec + 1E-6 * tv1.tv_usec);
 			/* Output measurements to the slurmd.log */
@@ -1978,9 +1978,9 @@ void pmixp_server_run_cperf(void)
 				type = PMIXP_COLL_TYPE_FENCE_RING;
 				break;
 			}
-			gettimeofday(&tv1, NULL);
+			slurm_timer_gettime(&tv1);
 			rc = _pmixp_server_cperf_iter(type, data, size);
-			gettimeofday(&tv2, NULL);
+			slurm_timer_gettime(&tv2);
 			times[j] = tv2.tv_sec + 1E-6 * tv2.tv_usec -
 					(tv1.tv_sec + 1E-6 * tv1.tv_usec);
 		}

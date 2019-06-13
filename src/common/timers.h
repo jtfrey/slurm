@@ -41,14 +41,51 @@
 
 #include <sys/time.h>
 
+/*
+ * slurm_timer_gettime - fill-in a timeval struct with the current
+ *               monotonically increasing time (unaffected by clock
+ *               changes/adjustments)
+ * OUT tv - place t put current time value
+ *
+ * Returns zero on success, non-zero on failure.
+ */
+extern int slurm_timer_gettime(struct timeval *tv);
+
+/*
+ * slurm_timer_delta_tv - return the number of microseconds
+ *           elapsed since the timer value in tv using the
+ *           monotonically-increasing time source
+ * INOUT tv - if tv.tv_sec is zero, set to the current time
+ *           value on exit; otherwise, used as the starting
+ *           time value
+ */
+extern int slurm_timer_delta_tv(struct timeval *tv);
+
+
+/*
+ * slurm_timer_diff_tv_str - build a string showing the time
+ *             difference between two monotonically-increasing
+ *             times
+ * IN tv1 - start of event
+ * IN tv2 - end of event
+ * OUT tv_str - place to put delta time in format "usec=%ld"
+ * IN len_tv_str - size of tv_str in bytes
+ * IN from - where the function was called form
+ */
+extern void slurm_timer_diff_tv_str(struct timeval *tv1, struct timeval *tv2,
+			      char *tv_str, int len_tv_str, const char *from, long limit,
+                  long *delta_t);
+
+
 #define DEF_TIMERS	struct timeval tv1, tv2; char tv_str[20] = ""; long delta_t;
-#define START_TIMER	gettimeofday(&tv1, NULL)
-#define END_TIMER	gettimeofday(&tv2, NULL); \
-	slurm_diff_tv_str(&tv1, &tv2, tv_str, 20, NULL, 0, &delta_t)
-#define END_TIMER2(from) gettimeofday(&tv2, NULL); \
-	slurm_diff_tv_str(&tv1, &tv2, tv_str, 20, from, 0, &delta_t)
-#define END_TIMER3(from, limit) gettimeofday(&tv2, NULL); \
-	slurm_diff_tv_str(&tv1, &tv2, tv_str, 20, from, limit, &delta_t)
+#define START_TIMER	slurm_timer_gettime(&tv1)
+#define ELAPSED_TIMER slurm_timer_delta_tv(&tv1)
+#define END_TIMER	slurm_timer_gettime(&tv2); \
+	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tvstr), NULL, 0, &delta_t)
+#define END_TIMER2(from) slurm_timer_gettime(&tv2); \
+	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tvstr), from, 0, &delta_t)
+#define END_TIMER3(from, limit) slurm_timer_gettime(&tv2); \
+	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tvstr), from, limit, &delta_t)
 #define DELTA_TIMER	delta_t
 #define TIME_STR 	tv_str
 

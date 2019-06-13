@@ -583,7 +583,7 @@ static int _tot_wait (struct timeval *start_time)
 	struct timeval end_time;
 	int msec_delay;
 
-	gettimeofday(&end_time, NULL);
+	slurm_timer_gettime(&end_time);
 	msec_delay =   (end_time.tv_sec  - start_time->tv_sec ) * 1000;
 	msec_delay += ((end_time.tv_usec - start_time->tv_usec + 500) / 1000);
 	return msec_delay;
@@ -1277,7 +1277,7 @@ static char *_run_script(char *cmd_path, char **script_argv, int *status)
 		resp_size = 1024;
 		resp = xmalloc(resp_size);
 		close(pfd[1]);
-		gettimeofday(&tstart, NULL);
+		slurm_timer_gettime(&tstart);
 		while (1) {
 			if (slurmctld_config.shutdown_time) {
 				error("%s: killing %s operation on shutdown",

@@ -1512,7 +1512,6 @@ static int _attempt_backfill(void)
 	uint32_t start_time;
 	time_t config_update = slurmctld_conf.last_update;
 	time_t part_update = last_part_update;
-	struct timeval start_tv;
 	uint32_t test_array_job_id = 0;
 	uint32_t test_array_count = 0;
 	uint32_t job_no_reserve;
@@ -1523,6 +1522,10 @@ static int _attempt_backfill(void)
 	time_t qos_blocked_until = 0, qos_part_blocked_until = 0;
 	time_t tmp_preempt_start_time = 0;
 	bool tmp_preempt_in_progress = false;
+    
+    /* removal of start_tv -- parallels the DEF_TIMERS functionality without
+     * being used for any distinctly different purpose */
+    
 	/* QOS Read lock */
 	assoc_mgr_lock_t qos_read_lock =
 		{ NO_LOCK, NO_LOCK, READ_LOCK, NO_LOCK,
@@ -1545,7 +1548,6 @@ static int _attempt_backfill(void)
 	else
 		debug("backfill: beginning");
 	sched_start = orig_sched_start = now = time(NULL);
-	gettimeofday(&start_tv, NULL);
 
 	job_queue = build_job_queue(true, true);
 	job_test_count = list_count(job_queue);
@@ -1567,7 +1569,7 @@ static int _attempt_backfill(void)
 	if (bf_hetjob_prio)
 		list_for_each(job_list, _set_hetjob_details, NULL);
 
-	gettimeofday(&bf_time1, NULL);
+	slurm_timer_gettime(&bf_time1);
 
 	slurmctld_diag_stats.bf_queue_len = job_test_count;
 	slurmctld_diag_stats.bf_queue_len_sum += slurmctld_diag_stats.
@@ -1633,7 +1635,7 @@ static int _attempt_backfill(void)
 			many_rpcs = true;
 		slurm_mutex_unlock(&slurmctld_config.thread_count_lock);
 
-		if (many_rpcs || (slurm_delta_tv(&start_tv) >= yield_interval)) {
+		if (many_rpcs || (ELAPSED_TIMER >= yield_interval)) {
 			if (debug_flags & DEBUG_FLAG_BACKFILL) {
 				END_TIMER;
 				info("backfill: yielding locks after testing "
@@ -1658,7 +1660,6 @@ static int _attempt_backfill(void)
 				break;
 			/* Reset backfill scheduling timers, resume testing */
 			sched_start = time(NULL);
-			gettimeofday(&start_tv, NULL);
 			job_test_count = 0;
 			test_time_count = 0;
 			START_TIMER;
@@ -1993,7 +1994,7 @@ next_task:
 			many_rpcs = true;
 		slurm_mutex_unlock(&slurmctld_config.thread_count_lock);
 
-		if (many_rpcs || (slurm_delta_tv(&start_tv) >= yield_interval)) {
+		if (many_rpcs || (ELAPSED_TIMER >= yield_interval)) {
 			uint32_t save_time_limit = job_ptr->time_limit;
 			_set_job_time_limit(job_ptr, orig_time_limit);
 			if (debug_flags & DEBUG_FLAG_BACKFILL) {
@@ -2021,7 +2022,6 @@ next_task:
 
 			/* Reset backfill scheduling timers, resume testing */
 			sched_start = time(NULL);
-			gettimeofday(&start_tv, NULL);
 			job_test_count = 1;
 			test_time_count = 0;
 			START_TIMER;
@@ -2678,7 +2678,7 @@ skip_start:
 	xfree(node_space);
 	FREE_NULL_LIST(job_queue);
 
-	gettimeofday(&bf_time2, NULL);
+	slurm_timer_gettime(&bf_time2);
 	_do_diag_stats(&bf_time1, &bf_time2, node_space_recs);
 	if (debug_flags & DEBUG_FLAG_BACKFILL) {
 		END_TIMER;

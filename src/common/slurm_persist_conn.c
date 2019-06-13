@@ -81,7 +81,7 @@ static int _tot_wait (struct timeval *start_time)
 	struct timeval end_time;
 	int msec_delay;
 
-	gettimeofday(&end_time, NULL);
+	slurm_timer_gettime(&end_time);
 	msec_delay =   (end_time.tv_sec  - start_time->tv_sec ) * 1000;
 	msec_delay += ((end_time.tv_usec - start_time->tv_usec + 500) / 1000);
 	return msec_delay;
@@ -131,7 +131,7 @@ static bool _conn_readable(slurm_persist_conn_t *persist_conn)
 	while (!(*persist_conn->shutdown)) {
 		if (persist_conn->timeout) {
 			struct timeval tstart;
-			gettimeofday(&tstart, NULL);
+			slurm_timer_gettime(&tstart);
 			time_left = persist_conn->timeout - _tot_wait(&tstart);
 		} else
 			time_left = -1;
@@ -759,7 +759,7 @@ extern int slurm_persist_conn_writeable(slurm_persist_conn_t *persist_conn)
 
 	ufds.fd     = persist_conn->fd;
 	ufds.events = POLLOUT;
-	gettimeofday(&tstart, NULL);
+	slurm_timer_gettime(&tstart);
 	while ((*persist_conn->shutdown) == 0) {
 		time_left = write_timeout - _tot_wait(&tstart);
 		rc = poll(&ufds, 1, time_left);
