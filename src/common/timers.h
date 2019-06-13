@@ -81,11 +81,11 @@ extern void slurm_timer_diff_tv_str(struct timeval *tv1, struct timeval *tv2,
 #define START_TIMER	slurm_timer_gettime(&tv1)
 #define ELAPSED_TIMER slurm_timer_delta_tv(&tv1)
 #define END_TIMER	slurm_timer_gettime(&tv2); \
-	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tvstr), NULL, 0, &delta_t)
+	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tv_str), NULL, 0, &delta_t)
 #define END_TIMER2(from) slurm_timer_gettime(&tv2); \
-	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tvstr), from, 0, &delta_t)
+	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tv_str), from, 0, &delta_t)
 #define END_TIMER3(from, limit) slurm_timer_gettime(&tv2); \
-	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tvstr), from, limit, &delta_t)
+	slurm_timer_diff_tv_str(&tv1, &tv2, tv_str, sizeof(tv_str), from, limit, &delta_t)
 #define DELTA_TIMER	delta_t
 #define TIME_STR 	tv_str
 
